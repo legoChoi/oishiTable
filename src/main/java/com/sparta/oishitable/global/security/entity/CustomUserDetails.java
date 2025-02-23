@@ -1,6 +1,6 @@
 package com.sparta.oishitable.global.security.entity;
 
-import com.sparta.oishitable.domain.user.entity.User;
+import com.sparta.oishitable.domain.common.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -49,7 +49,7 @@ public class CustomUserDetails implements UserDetails {
         return user.getName();
     }
 
-    public String getId() {
-        return String.valueOf(user.getId());
+    public Long getId() {
+        return user.getId();
     }
 }

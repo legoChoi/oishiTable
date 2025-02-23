@@ -12,6 +12,7 @@ public enum ErrorCode {
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 존재하는 이메일입니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다."),
+    INVALID_USER_ROLE(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 권한입니다."),
 
     USER_UNAUTHORIZED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다"),
 
@@ -20,14 +21,26 @@ public enum ErrorCode {
 
     // SeatType 관련 익셉션
     SEAT_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 좌석 타입 입니다."),
+    SEAT_TYPE_NAME_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 좌석 타입 이름 입니다."),
 
-    SEAT_TYPE_NAME_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 좌석 타입 이름 입니다."),
+    // 팔로우 관련 익셉션
+    CANNOT_FOLLOW_SELF(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우 할 수 없습니다."),
+    ALREADY_FOLLOWING(HttpStatus.BAD_REQUEST, "이미 팔로우 중인 관계입니다."),
+    FOLLOW_NOT_FOUND(HttpStatus.NOT_FOUND, "팔로우 관계를 찾을 수 없습니다."),
 
     // RESTAURANT_SEAT_TYPE 관련 익셉션
-    RESTAURANT_SEAT_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 레스토랑 좌석입니다."),
+    RESTAURANT_SEAT_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 레스토랑 좌석입니다."),
+    RESTAURANT_SEAT_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "해당 좌석의 예약이 가득 찼습니다."),
+    BELOW_MIN_GUEST_COUNT(HttpStatus.BAD_REQUEST, "좌석 유형에 필요한 최소 인원보다 적습니다."),
+    EXCEEDS_MAX_GUEST_COUNT(HttpStatus.BAD_REQUEST, "좌석 유형에 필요한 최대 인원보다 많습니다."),
+
+    // 분산락 관련 익셉션
+    LOCK_ACQUISITION_FAILED(HttpStatus.TOO_MANY_REQUESTS, "락 획득에 실패했습니다. 잠시 후 다시 시도해주세요."),
 
     // 예약 관련 익셉션
-    RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 예약 입니다."),
+    RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 예약 입니다."),
+    RESERVED_RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않거나 예약 상태가 아닙니다."),
+    RESERVATION_COUPON_LIMIT_EXCEEDED(HttpStatus.NOT_FOUND, "할인 쿠폰 지급 이벤트가 끝났습니다."),
 
     // Security 관련 익셉션
     LOGIN_FAILED_EXCEPTION(HttpStatus.UNAUTHORIZED, "로그인에 실패하였습니다."),
@@ -50,6 +63,8 @@ public enum ErrorCode {
     // 게시글 관련 익셉션
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시글 입니다."),
 
+    POST_NOT_EQUAL(HttpStatus.BAD_REQUEST, "해당 게시글이 아닙니다."),
+
     // 댓글 관련 익셉션
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 댓글 입니다."),
 
@@ -60,8 +75,15 @@ public enum ErrorCode {
 
     // 북마크 관련 익셉션
     BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 북마크입니다."),
-    BOOKMARK_ALREADY_EXISTS_RESTAURANT(HttpStatus.CONFLICT, "이미 북마크된 식당입니다.")
-    ;
+    BOOKMARK_ALREADY_EXISTS_RESTAURANT(HttpStatus.CONFLICT, "이미 북마크된 식당입니다."),
+
+    // 컬렉션 관련 익셉션
+    COLLECTION_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 컬렉션입니다."),
+    ALREADY_EXISTS_BOOKMARK_IN_COLLECTION(HttpStatus.CONFLICT, "이미 해당 컬렉션 내에 저장된 북마크입니다."),
+    INVALID_ACCESS_BOOKMARK_IN_COLLECTION(HttpStatus.BAD_REQUEST, "잘못된 컬렉션 내 북마크에 대한 접근입니다."),
+
+    // 메뉴 관련 익셉션
+    MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 메뉴입니다.");
 
     private final HttpStatus status;
     private final String message;
