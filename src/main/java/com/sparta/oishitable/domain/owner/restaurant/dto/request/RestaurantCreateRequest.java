@@ -11,28 +11,25 @@ import java.time.LocalTime;
 import java.util.List;
 
 public record RestaurantCreateRequest(
-        @NotNull
-        Long userId,
-
         @NotBlank
         String name,
 
         @NotBlank
-        String location,
+        String address,
 
-        @NotBlank
+        @NotNull
         @JsonFormat(pattern = "HH:mm")
         LocalTime openTime,
 
-        @NotBlank
+        @NotNull
         @JsonFormat(pattern = "HH:mm")
         LocalTime closeTime,
 
-        @NotBlank
+        @NotNull
         @JsonFormat(pattern = "HH:mm")
         LocalTime breakTimeStart,
 
-        @NotBlank
+        @NotNull
         @JsonFormat(pattern = "HH:mm")
         LocalTime breakTimeEnd,
 
@@ -42,17 +39,17 @@ public record RestaurantCreateRequest(
         @NotNull
         Integer deposit,
 
-        @NotBlank
+        @NotNull
         @JsonFormat(pattern = "HH:mm")
         LocalTime reservationInterval,
 
         List<RestaurantSeatCreateRequest> restaurantSeatCreateRequestList
 ) {
 
-    public Restaurant toEntity(User owner) {
+    public Restaurant toEntity(User owner, double latitude, double longitude) {
         return Restaurant.builder()
                 .name(name)
-                .location(location)
+                .address(address)
                 .openTime(openTime)
                 .closeTime(closeTime)
                 .breakTimeStart(breakTimeStart)
@@ -60,6 +57,8 @@ public record RestaurantCreateRequest(
                 .introduce(introduce)
                 .deposit(deposit)
                 .reservationInterval(reservationInterval)
+                .latitude(latitude)
+                .longitude(longitude)
                 .owner(owner)
                 .build();
     }

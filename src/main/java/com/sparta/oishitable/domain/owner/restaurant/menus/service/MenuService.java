@@ -1,6 +1,6 @@
 package com.sparta.oishitable.domain.owner.restaurant.menus.service;
 
-import com.sparta.oishitable.domain.auth.service.AuthService;
+import com.sparta.oishitable.domain.common.auth.service.AuthService;
 import com.sparta.oishitable.domain.owner.restaurant.entity.Restaurant;
 import com.sparta.oishitable.domain.owner.restaurant.menus.dto.request.MenuCreateRequest;
 import com.sparta.oishitable.domain.owner.restaurant.menus.dto.request.MenuUpdateRequest;
@@ -31,11 +31,14 @@ public class MenuService {
 
         authService.checkUserAuthority(restaurant.getOwner().getId(), userId);
 
-        List<Menu> menus = request.stream()
+        List<Menu> newMenus = request.stream()
                 .map(m -> m.toEntity(restaurant))
                 .toList();
 
-        menuRepository.saveAll(menus);
+        menuRepository.saveAll(newMenus);
+
+        // 레스토랑 최대/최소값 변경
+        restaurant.updateMinMaxPrice(newMenus);
     }
 
     @Transactional(readOnly = true)
@@ -55,22 +58,38 @@ public class MenuService {
     @Transactional
     public void updateMenu(Long userId, Long restaurantId, Long menuId, MenuUpdateRequest request) {
         Menu menu = findMenuByMenuIdAndRestaurantId(menuId, restaurantId);
+        Restaurant restaurant = menu.getRestaurant();
 
-        authService.checkUserAuthority(menu.getRestaurant().getOwner().getId(), userId);
+        authService.checkUserAuthority(restaurant.getOwner().getId(), userId);
 
-        menu.update(request.menuName(), menu.getPrice(), menu.getDescription());
+        Integer oldPrice = menu.getPrice();
+        Integer newPrice = request.menuPrice();
+
+        menu.update(request.menuName(), newPrice, request.menuDescription());
+
+        // 변경 이전/이후의 가격이 최대/최소값인 경우에만 업데이트 적용
+        if (restaurant.isMinOrMaxPrice(oldPrice) || restaurant.isMinOrMaxPrice(newPrice)) {
+            restaurant.updateMinMaxPrice();
+        }
     }
 
     @Transactional
     public void deleteMenu(Long userId, Long restaurantId, Long menuId) {
         Menu menu = findMenuByMenuIdAndRestaurantId(menuId, restaurantId);
+        Restaurant restaurant = menu.getRestaurant();
 
-        authService.checkUserAuthority(menu.getRestaurant().getOwner().getId(), userId);
+        authService.checkUserAuthority(restaurant.getOwner().getId(), userId);
 
         menuRepository.delete(menu);
+        restaurant.removeMenu(menu);
+
+        // 삭제될 메뉴의 가격이 최대 혹은 최소값인 경우에만 업데이트 적용
+        if (restaurant.isMinOrMaxPrice(menu.getPrice())) {
+            restaurant.updateMinMaxPrice();
+        }
     }
 
-    private Menu findMenuByMenuIdAndRestaurantId(Long restaurantId, Long menuId) {
+    private Menu findMenuByMenuIdAndRestaurantId(Long menuId, Long restaurantId) {
         return menuRepository.findByIdAndRestaurantId(menuId, restaurantId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MENU_NOT_FOUND));
     }

@@ -44,8 +44,7 @@ public class Comment extends BaseEntity {
     private List<Comment> replies = new ArrayList<>();
 
     @Builder
-    public Comment(Long id, String content, User user, Post post, Comment parent) {
-        this.id = id;
+    public Comment(String content, User user, Post post, Comment parent) {
         this.content = content;
         this.user = user;
         this.post = post;
@@ -64,11 +63,6 @@ public class Comment extends BaseEntity {
     public void addReply(Comment reply) {
         replies.add(reply);
         reply.setParent(this);
-    }
-
-    public void removeReply(Comment reply) {
-        replies.remove(reply);
-        reply.setParent(null);
     }
 
     public void update(String content) {

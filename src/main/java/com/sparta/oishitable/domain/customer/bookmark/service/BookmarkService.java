@@ -1,5 +1,6 @@
 package com.sparta.oishitable.domain.customer.bookmark.service;
 
+import com.sparta.oishitable.domain.common.auth.service.AuthService;
 import com.sparta.oishitable.domain.common.user.entity.User;
 import com.sparta.oishitable.domain.common.user.repository.UserRepository;
 import com.sparta.oishitable.domain.customer.bookmark.dto.request.BookmarkUpdateRequest;
@@ -7,15 +8,13 @@ import com.sparta.oishitable.domain.customer.bookmark.dto.response.BookmarkDetai
 import com.sparta.oishitable.domain.customer.bookmark.dto.response.BookmarksFindResponse;
 import com.sparta.oishitable.domain.customer.bookmark.entity.Bookmark;
 import com.sparta.oishitable.domain.customer.bookmark.repository.BookmarkRepository;
+import com.sparta.oishitable.domain.customer.restaurant.repository.CustomerRestaurantRepository;
 import com.sparta.oishitable.domain.owner.restaurant.entity.Restaurant;
-import com.sparta.oishitable.domain.owner.restaurant.repository.RestaurantRepository;
 import com.sparta.oishitable.global.exception.ConflictException;
-import com.sparta.oishitable.global.exception.ForbiddenException;
 import com.sparta.oishitable.global.exception.NotFoundException;
 import com.sparta.oishitable.global.exception.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,11 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class BookmarkService {
 
     private final BookmarkRepository bookmarkRepository;
-    private final RestaurantRepository restaurantRepository;
+    private final CustomerRestaurantRepository restaurantRepository;
     private final UserRepository userRepository;
+    private final AuthService authService;
 
     @Transactional
-    public void createBookmark(Long userId, Long restaurantId) {
+    public Long createBookmark(Long userId, Long restaurantId) {
         if (bookmarkRepository.existsByUserIdAndRestaurantId(userId, restaurantId)) {
             throw new ConflictException(ErrorCode.BOOKMARK_ALREADY_EXISTS_RESTAURANT);
         }
@@ -46,7 +46,9 @@ public class BookmarkService {
                 .restaurant(restaurant)
                 .build();
 
-        bookmarkRepository.save(bookmark);
+        Bookmark savedBookmark = bookmarkRepository.save(bookmark);
+
+        return savedBookmark.getId();
     }
 
     public BookmarksFindResponse findBookmarks(Long userId, Pageable pageable) {
@@ -59,7 +61,7 @@ public class BookmarkService {
     @Transactional
     public void updateBookmarkMemo(Long userId, Long bookmarkId, BookmarkUpdateRequest bookmarkUpdateRequest) {
         Bookmark bookmark = findById(bookmarkId);
-        checkUserAuthority(userId, bookmark.getUser().getId());
+        authService.checkUserAuthority(bookmark.getUser().getId(), userId);
 
         bookmark.updateMemo(bookmarkUpdateRequest.updateMemo());
     }
@@ -67,31 +69,13 @@ public class BookmarkService {
     @Transactional
     public void deleteBookmark(Long userId, Long bookmarkId) {
         Bookmark bookmark = findById(bookmarkId);
-        checkUserAuthority(userId, bookmark.getUser().getId());
+        authService.checkUserAuthority(bookmark.getUser().getId(), userId);
 
         bookmarkRepository.delete(bookmark);
-    }
-
-    @Transactional
-    public void deleteBookmarkByUserIdAndRestaurantId(Long userId, Long restaurantId) {
-        Bookmark bookmark = findByUserIdAndRestaurantId(userId, restaurantId);
-
-        bookmarkRepository.delete(bookmark);
-    }
-
-    private void checkUserAuthority(Long ownerId, Long userId) {
-        if (!ownerId.equals(userId)) {
-            throw new ForbiddenException(ErrorCode.USER_UNAUTHORIZED);
-        }
     }
 
     private Bookmark findById(Long bookmarkId) {
         return bookmarkRepository.findById(bookmarkId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.BOOKMARK_NOT_FOUND));
-    }
-
-    private Bookmark findByUserIdAndRestaurantId(Long userId, Long restaurantId) {
-        return bookmarkRepository.findByUserIdAndRestaurantId(userId, restaurantId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.BOOKMARK_NOT_FOUND));
     }
 }
