@@ -1,70 +1,53 @@
 package com.sparta.oishitable.domain.customer.restaurant.waiting.repository;
 
-import com.sparta.oishitable.domain.owner.restaurant.waiting.entity.WaitingRedisDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.IntStream;
+import java.util.Set;
 
 @Repository
 @RequiredArgsConstructor
 public class CustomerWaitingRedisRepositoryImpl implements CustomerWaitingRedisRepository {
 
-    private final RedisTemplate<String, WaitingRedisDto> redisTemplate;
-    private static final String WAITING_QUEUE_PREFIX = "restaurant_waiting_queue:";
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
-    public void push(Long restaurantId, WaitingRedisDto waitingRedisDto) {
-        String key = WAITING_QUEUE_PREFIX + restaurantId;
-        redisTemplate.opsForList().rightPush(key, waitingRedisDto);
+    public void zAdd(String key, Long userId, Integer sequence) {
+        redisTemplate.opsForZSet().add(key, userId.toString(), sequence);
     }
 
     @Override
-    public Optional<WaitingRedisDto> findUser(Long restaurantId, Long userId) {
-        List<WaitingRedisDto> queue = findQueue(restaurantId);
+    public Optional<Integer> zFindLastSequence(String key) {
+        Set<ZSetOperations.TypedTuple<String>> records = redisTemplate.opsForZSet().reverseRangeWithScores(key, 1, -1);
 
-        if (queue == null || queue.isEmpty()) {
+        if (records == null || records.isEmpty()) {
             return Optional.empty();
         }
 
-        return queue.stream()
-                .filter(w -> w.getUserId().equals(userId))
-                .findFirst();
-    }
+        Double score = records.iterator().next().getScore();
 
-    @Override
-    public void remove(Long restaurantId, Long idx) {
-        String key = WAITING_QUEUE_PREFIX + restaurantId;
-        WaitingRedisDto target = redisTemplate.opsForList().index(key, idx);
-
-        redisTemplate.opsForList().remove(key, 1, target);
-    }
-
-    @Override
-    public Optional<Long> findUserRank(Long userId, Long restaurantId) {
-        List<WaitingRedisDto> queue = findQueue(restaurantId);
-
-        if (queue == null || queue.isEmpty()) {
+        if (score == null) {
             return Optional.empty();
         }
 
-        return IntStream.range(0, queue.size())
-                .filter(i -> queue.get(i).getUserId().equals(userId))
-                .mapToObj(i -> (long) i)
-                .findFirst();
+        return Optional.of(score.intValue());
     }
 
     @Override
-    public Long findQueueSize(Long restaurantId) {
-        String key = WAITING_QUEUE_PREFIX + restaurantId;
-        return redisTemplate.opsForList().size(key);
+    public Optional<Long> zFindUserRank(String key, Long userId) {
+        return Optional.ofNullable(redisTemplate.opsForZSet().rank(key, userId.toString()));
     }
 
-    private List<WaitingRedisDto> findQueue(Long restaurantId) {
-        String key = WAITING_QUEUE_PREFIX + restaurantId;
-        return redisTemplate.opsForList().range(key, 0, -1);
+    @Override
+    public void zRemove(String key, Long userId) {
+        redisTemplate.opsForZSet().remove(key, userId.toString());
+    }
+
+    @Override
+    public Long zCard(String key) {
+        return redisTemplate.opsForZSet().zCard(key);
     }
 }

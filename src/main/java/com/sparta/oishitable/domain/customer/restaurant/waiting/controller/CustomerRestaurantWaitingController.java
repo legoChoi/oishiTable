@@ -29,7 +29,7 @@ public class CustomerRestaurantWaitingController {
         return ResponseEntity.created(null).build();
     }
 
-    @GetMapping("/size")
+    @GetMapping
     public ResponseEntity<WaitingQueueFindSizeResponse> findWaitingQueueSize(
             @PathVariable Long restaurantId
     ) {
@@ -39,23 +39,25 @@ public class CustomerRestaurantWaitingController {
         return ResponseEntity.ok(waitingQueueSizeResponse);
     }
 
-    @GetMapping
+    @GetMapping("/{waitingId}")
     public ResponseEntity<WaitingQueueFindUserRankResponse> findWaitingQueueUserRank(
+            @PathVariable Long waitingId,
             @PathVariable Long restaurantId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         WaitingQueueFindUserRankResponse waitingQueueUserRankResponse
-                = customerRestaurantWaitingService.findWaitingQueueUserRank(userDetails.getId(), restaurantId);
+                = customerRestaurantWaitingService.findWaitingQueueUserRank(userDetails.getId(), restaurantId, waitingId);
 
         return ResponseEntity.ok(waitingQueueUserRankResponse);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{waitingId}")
     public ResponseEntity<Void> cancelWaiting(
+            @PathVariable Long waitingId,
             @PathVariable Long restaurantId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        customerRestaurantWaitingService.cancelWaitingQueue(userDetails.getId(), restaurantId);
+        customerRestaurantWaitingService.cancelWaitingQueue(userDetails.getId(), restaurantId, waitingId);
 
         return ResponseEntity.noContent().build();
     }
