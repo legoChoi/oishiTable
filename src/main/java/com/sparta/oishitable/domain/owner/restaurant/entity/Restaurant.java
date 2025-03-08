@@ -73,7 +73,7 @@ public class Restaurant extends BaseEntity {
     @Column(nullable = false)
     @ColumnDefault("'CLOSE'")
     @Enumerated(EnumType.STRING)
-    public WaitingStatus waitingStatus;
+    private WaitingStatus waitingStatus;
 
     private Integer minPrice;
     private Integer maxPrice;
@@ -127,8 +127,9 @@ public class Restaurant extends BaseEntity {
 
     public void updateMinMaxPrice() {
         Menus menus = new Menus(this.menus);
-        updateMinPrice(menus.getMinPrice());
-        updateMaxPrice(menus.getMaxPrice());
+
+        this.minPrice = CalculatorUtil.ceilToNearestTenThousand(menus.getMinPrice());
+        this.minPrice = CalculatorUtil.ceilToNearestTenThousand(menus.getMaxPrice());
     }
 
     public void updateMinMaxPrice(List<Menu> newMenus) {

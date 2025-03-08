@@ -20,7 +20,6 @@ public enum ErrorCode {
     KAKAO_FAILED_TOKEN_PARSING_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 액세스 토큰 응답 파싱 실패했습니다."),
     KAKAO_FAILED_PROFILE_PARSING_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 사용자 프로필 응답을 파싱하는데 실패했습니다."),
 
-
     // 식당 관련 익셉션
     RESTAURANT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 식당 입니다."),
 
@@ -43,9 +42,11 @@ public enum ErrorCode {
     LOCK_ACQUISITION_FAILED(HttpStatus.TOO_MANY_REQUESTS, "락 획득에 실패했습니다. 잠시 후 다시 시도해주세요."),
 
     // 예약 관련 익셉션
+    INVALID_RESERVATION_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 예약 상태입니다."),
     RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 예약 입니다."),
     RESERVED_RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않거나 예약 상태가 아닙니다."),
     RESERVATION_COUPON_LIMIT_EXCEEDED(HttpStatus.NOT_FOUND, "할인 쿠폰 지급 이벤트가 끝났습니다."),
+    DUPLICATE_RESERVATION(HttpStatus.CONFLICT, "이미 같은 시간대에 예약하신 내역이 존재합니다."),
 
     // Security 관련 익셉션
     LOGIN_FAILED_EXCEPTION(HttpStatus.UNAUTHORIZED, "로그인에 실패하였습니다."),
@@ -110,6 +111,8 @@ public enum ErrorCode {
     WAITING_QUEUE_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "대기열에 등록되지 않은 고객입니다."),
     WAITING_NOT_FOUND(HttpStatus.NOT_FOUND, "대기열 데이터가 존재하지 않습니다."),
     RESTAURANT_WAITING_IS_CLOSED(HttpStatus.BAD_REQUEST, "식당의 대기열이 닫혀있습니다."),
+    ALREADY_COMPLETED_WAITING_EXCEPTION(HttpStatus.CONFLICT, "이미 완료된 웨이팅입니다."),
+    ALREADY_CANCELED_WAITING_EXCEPTION(HttpStatus.CONFLICT, "이미 완료된 웨이팅입니다."),
     ;
 
     private final HttpStatus status;
